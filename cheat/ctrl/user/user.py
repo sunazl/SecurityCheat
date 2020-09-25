@@ -11,7 +11,6 @@ from datetime import datetime
 
 from django.db import transaction
 from django.db.models import OneToOneRel
-from django.forms import CharField
 
 from cheat import entry
 from cheat.models import User, UserInfo
@@ -88,8 +87,10 @@ def login(req):
     # requests.
 
     if count:
-        token = ""
+        token = "aslkdfjljflkjsaf"
         return token
+    else:
+        return "user name or password is wrong"
 
 
 # 匹配req和数据库中的字段,可直接进行update等使用
