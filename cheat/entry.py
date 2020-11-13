@@ -32,26 +32,27 @@ def router_rest(request):
     body = request.body
     p_data = str(body, encoding="utf8")
     if not p_data:
-        return HttpResponse(json.dumps({'tag': '数据解析错误,无法从请求中获取到正确的值'}, cls=ComplexEncoder, ensure_ascii=False),
-                            content_type='application/json')
-
+        return HttpResponse(json.dumps({'msg': '数据解析错误,无法从请求中获取到正确的值'}, cls=ComplexEncoder, ensure_ascii=False),
+                            content_type='application/json', status=400)
     p_data = json.loads(p_data)
     try:
         ctrl_name = p_data.get('ctrl', None)
         class_name = ctrl_name.split("=")[0]
         method_name = ctrl_name.split("=")[1]
     except:
-        return HttpResponse(json.dumps({'tag': 'URI解析失败'}, cls=ComplexEncoder, ensure_ascii=False),
-                            content_type='application/json')
+        return HttpResponse(json.dumps({'msg': 'URI解析失败', 'code': '500'}, cls=ComplexEncoder, ensure_ascii=False),
+                            content_type='application/json', status=400)
     # 入口
-    result = exe_ctrl(class_name, method_name, p_data)
+    result, flag = exe_ctrl(class_name, method_name, p_data)
 
-    if result:
+    if flag:
+        result.update({'code': 200})
         return HttpResponse(json.dumps(result, cls=ComplexEncoder, ensure_ascii=False),
                             content_type='application/json')
     else:
-        return HttpResponse(json.dumps({'tag': '发送了错误的URI'}, cls=ComplexEncoder, ensure_ascii=False),
-                            content_type='application/json')
+        return HttpResponse(
+            json.dumps({'msg': '发送了错误的URI,或服务器内部错误', 'code': '500'}, cls=ComplexEncoder, ensure_ascii=False),
+            content_type='application/json', status=400)
 
 
 def test():
@@ -66,8 +67,9 @@ def exe_ctrl(class_name, method_name, p_data):
     config_path = os.path.join(cur_path, 'ctrl.ini')
     config.read(config_path)
     if not config.has_option("ctrl", class_name + '.py'):
+        msg = "没有文件" + class_name + ".py,请检查"
         log.error("没有文件" + class_name + ".py,请检查")
-        return HttpResponse(content_type='application/json')
+        return msg, False
     folder = config.get("ctrl", class_name + ".py")
 
     # 导入这个方法
@@ -75,8 +77,9 @@ def exe_ctrl(class_name, method_name, p_data):
     obj = import_module(imp_name)
     # 查询方法是否存在
     if not hasattr(obj, method_name):
+        msg = "没有成功加载" + class_name + "下的" + method_name + "方法,请检查"
         log.error("没有成功加载" + class_name + "下的" + method_name + "方法,请检查")
-        return False
+        return msg, False
 
     # 获取对象中的方法 并执行
     func = getattr(obj, method_name)
@@ -84,12 +87,7 @@ def exe_ctrl(class_name, method_name, p_data):
     if dict_:
         if isinstance(dict_, QuerySet):
             # 防止json转换失败
-            return list(dict_)
-        return dict_
+            return list(dict_), True
+        return dict_, True
     else:
-        return False
-
-    # if dict_ is  not None and dict_.get_send() is None:
-    #     return HttpResponse(json.dumps(dict_.get_data(), cls=ComplexEncoder), content_type='application/json')
-    # else:
-    #     return dict_.get_send()
+        return "服务器内部错误,数据处理失败", False

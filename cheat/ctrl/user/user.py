@@ -4,6 +4,7 @@ Created on 2020年9月24日
 
 @author: xiandan
 '''
+import base64
 import copy
 import sys
 import uuid
@@ -15,8 +16,10 @@ from django.db.models import OneToOneRel
 from cheat import entry
 from cheat.models import User, UserInfo
 
-
 # 注册
+from secur.encry_util import encry_util
+
+
 @transaction.atomic()
 def user_sign_in(req):
     user_number = "123"
@@ -84,13 +87,12 @@ def login(req):
 
     count = UserInfo.objects.filter(user_name=user_name, password=password).count()
     # 登录成功返回一个token 和一个私钥
-    # requests.
-
     if count:
-        token = "aslkdfjljflkjsaf"
-        return token
+        token = encry_util.rsaEncrypt(str(uuid.uuid4()).replace('-', ''))
+        pubkey = encry_util.get_pubkey()
+        return {'msg': 'login success', 'token': token, 'pubkey': pubkey}
     else:
-        return "user name or password is wrong"
+        return {'msg': "user name or password is wrong"}
 
 
 # 匹配req和数据库中的字段,可直接进行update等使用
@@ -104,7 +106,7 @@ def trans_req_model(model_name, req):
 
     fields_list = []
     for field in fields:
-        if isinstance(field,OneToOneRel):
+        if isinstance(field, OneToOneRel):
             fields_list.append(str(field.field).split(".")[-1])
         else:
             fields_list.append(str(field).split(".")[-1])
@@ -115,3 +117,10 @@ def trans_req_model(model_name, req):
             data[field] = req[field]
 
     return data
+
+
+def user_connect(req):
+    pubkey = encry_util.get_pubkey()
+    pub = pubkey.save_pkcs1()
+    pubkey_str = str(base64.b64encode(pub), 'utf-8')
+    return {"pubkey": pubkey_str}
