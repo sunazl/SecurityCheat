@@ -7,6 +7,7 @@ Created on 2020年9月24日
 import base64
 import copy
 import sys
+import time
 import uuid
 from datetime import datetime
 
@@ -14,7 +15,7 @@ from django.db import transaction
 from django.db.models import OneToOneRel
 
 from cheat import entry
-from cheat.models import User, UserInfo
+from cheat.models import User
 
 # 注册
 from secur.encry_util import encry_util
@@ -45,7 +46,6 @@ def user_sign_in(req):
     # 用户完整信息
     UserInfo(**user_info).save()
     UserInfo.objects.get()
-    entry.test()
 
     values = User.objects.filter(user_name=req["user_name"]).values()
     return values
@@ -74,13 +74,15 @@ def user_get_info(req):
     user_info_values = UserInfo.objects.filter(user_id=userid).values()
     return user_info_values
 
+@transaction.atomic()
+def sign_up(req):
+    req['user_id'] = str(uuid.uuid4()).replace('-', '')
+    req["sign_time"]
 
-def general_token():
-    num = 0
+    User(**req).save()
+    return "注册成功"
 
-    return num
-
-
+# 客户端登录
 def login(req):
     user_name = req["user_name"]
     password = req["password"]
@@ -88,7 +90,7 @@ def login(req):
     count = UserInfo.objects.filter(user_name=user_name, password=password).count()
     # 登录成功返回一个token 和一个私钥
     if count:
-        token = encry_util.rsaEncrypt(str(uuid.uuid4()).replace('-', ''))
+        token = encry_util.rsa_encrypt(str(uuid.uuid4()).replace('-', ''))
         pubkey = encry_util.get_pubkey()
         return {'msg': 'login success', 'token': token, 'pubkey': pubkey}
     else:
@@ -119,8 +121,11 @@ def trans_req_model(model_name, req):
     return data
 
 
+# 客户端获取连接
 def user_connect(req):
-    pubkey = encry_util.get_pubkey()
-    pub = pubkey.save_pkcs1()
+    connection_time = time.time()
+    connection_key = encry_util.get_connection_key()
+    pub = connection_key['pubkey'].save_pkcs1()
+    create_time = connection_key['create_time']
     pubkey_str = str(base64.b64encode(pub), 'utf-8')
-    return {"pubkey": pubkey_str}
+    return {"pubkey": pubkey_str, "server_time": connection_time, 'create_time': create_time}

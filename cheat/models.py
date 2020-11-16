@@ -8,12 +8,7 @@ class User(models.Model):
     user_id = models.CharField("用户id,不对外展示", max_length=32, primary_key=True)
     user_name = models.CharField("用户名", max_length=128)
     nick_name = models.CharField("昵称", max_length=128)
-    user_number = models.CharField("数字账号", max_length=128)
     sign_time = models.DateTimeField("注册日期", auto_now_add=True)
-
-
-# # 用户详细信息
-class UserInfo(User):
     mail = models.CharField("邮箱", max_length=128)
     password = models.CharField("密码", max_length=128)
 

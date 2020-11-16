@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from SecurityCheat import settings
 from cheat.utils.json_utils import ComplexEncoder
 from cheat.utils.log import log
-
+from cheat.secur.encry_util import encry_util
 
 # 引入模块并缓存
 def import_module(import_str):
@@ -55,9 +55,6 @@ def router_rest(request):
             content_type='application/json', status=400)
 
 
-def test():
-    print("ok")
-
 
 # 解析ctrl
 def exe_ctrl(class_name, method_name, p_data):
@@ -83,6 +80,8 @@ def exe_ctrl(class_name, method_name, p_data):
 
     # 获取对象中的方法 并执行
     func = getattr(obj, method_name)
+    if method_name != "user_connect":
+        p_data = encry_util.rsa_decrypt_by_req(p_data)
     dict_ = func(p_data)
     if dict_:
         if isinstance(dict_, QuerySet):
