@@ -10,17 +10,13 @@ import sys
 import time
 import uuid
 from datetime import datetime
-
 from django.db import transaction
 from django.db.models import OneToOneRel
-
-from cheat import entry
-from cheat.models import User
-
-# 注册
+from cheat.models import User, Login
 from secur.encry_util import encry_util
 
 
+# 注册
 @transaction.atomic()
 def user_sign_in(req):
     user_number = "123"
@@ -44,8 +40,8 @@ def user_sign_in(req):
 
     User(**user_info_base).save()
     # 用户完整信息
-    UserInfo(**user_info).save()
-    UserInfo.objects.get()
+    User(**user_info).save()
+    User.objects.get()
 
     values = User.objects.filter(user_name=req["user_name"]).values()
     return values
@@ -56,8 +52,6 @@ def user_sign_in(req):
 def user_delete(req):
     user_id = req["user_id"]
     User.objects.filter(user_id=user_id).delete()
-
-    # UserInfo.objects.filter(user_id=user_id).delete()
     return "用户注销成功"
 
 
@@ -71,30 +65,45 @@ def user_update(req):
 # 获取用户详细信息
 def user_get_info(req):
     userid = req["user_id"]
-    user_info_values = UserInfo.objects.filter(user_id=userid).values()
+    user_info_values = User.objects.filter(user_id=userid).values()
     return user_info_values
+
 
 @transaction.atomic()
 def sign_up(req):
     req['user_id'] = str(uuid.uuid4()).replace('-', '')
-    req["sign_time"]
+    req["sign_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    has = User.objects.filter(user_name=req['user_name'])
+    if has:
+        return '该用户名被占用,请重试'
 
     User(**req).save()
     return "注册成功"
+
 
 # 客户端登录
 def login(req):
     user_name = req["user_name"]
     password = req["password"]
-
-    count = UserInfo.objects.filter(user_name=user_name, password=password).count()
-    # 登录成功返回一个token 和一个私钥
-    if count:
-        token = encry_util.rsa_encrypt(str(uuid.uuid4()).replace('-', ''))
-        pubkey = encry_util.get_pubkey()
-        return {'msg': 'login success', 'token': token, 'pubkey': pubkey}
+    login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    user = User.objects.filter(user_name=user_name, password=password).values()
+    # 登录成功返回一个token
+    if user:
+        user = user[0]
+        user_id = user['user_id']
+        nick_name = user['nick_name']
+        login_ = Login.objects.filter(user_id=user_id).values()
+        if login_:
+            login_time_last = login_[0]['login_time_last']
+        else:
+            login_time_last = None
+        Login(user_id=user_id, login_time=login_time, login_time_last=login_time).save()
+        token = str(uuid.uuid4()).replace('-', '')
+        return {'result': 'login success', 'user_id': user_id, 'token': token,'user_name':user_name, 'nick_name': nick_name,
+                'login_time_last': login_time_last,'login_time':login_time}
     else:
-        return {'msg': "user name or password is wrong"}
+        return {'result': "user name or password is wrong"}
 
 
 # 匹配req和数据库中的字段,可直接进行update等使用

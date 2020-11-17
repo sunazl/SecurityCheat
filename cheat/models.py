@@ -6,7 +6,7 @@ from django.db import models
 # 用户表
 class User(models.Model):
     user_id = models.CharField("用户id,不对外展示", max_length=32, primary_key=True)
-    user_name = models.CharField("用户名", max_length=128)
+    user_name = models.CharField("用户名", max_length=128, unique=True)
     nick_name = models.CharField("昵称", max_length=128)
     sign_time = models.DateTimeField("注册日期", auto_now_add=True)
     mail = models.CharField("邮箱", max_length=128)
@@ -22,7 +22,6 @@ class Login(models.Model):
     online_time = models.CharField("共计在线时长", max_length=256)
 
 
-
 # 账号密码表
 class Passwd(models.Model):
     user_id = models.CharField("用户id,不对外展示", max_length=32, primary_key=True)
@@ -32,8 +31,10 @@ class Passwd(models.Model):
 
 # 无状态的  每次发送必须带token
 class Token(models.Model):
-    token_id = models.CharField("token_id", max_length=32, primary_key=True)
-    user_id = models.CharField("用户id,不对外展示", max_length=32)
+    user_id = models.CharField("用户id,不对外展示", max_length=32, primary_key=True)
+    token = models.CharField("token_id", max_length=32)
+    user_name = models.CharField("用户名", max_length=128)
+    create_time = models.DateTimeField("token创建时间", auto_now_add=True)
 
 
 # 好友表
@@ -43,6 +44,7 @@ class friends(models.Model):
     meet_date = models.DateTimeField("加好友日期", auto_now_add=True)
     black_list = models.CharField("黑名单的用户id", max_length=32)
     special_care = models.CharField("特别关心好友", max_length=32)
+
 
 # 群组表
 class group(models.Model):
