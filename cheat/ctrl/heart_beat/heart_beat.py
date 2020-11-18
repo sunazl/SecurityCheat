@@ -4,7 +4,6 @@
 import threading
 import time
 
-
 from utils.log import log
 
 
@@ -18,7 +17,7 @@ def check_status(req):
     user_cache.onfine(user_id)
     if not info:
         user_cache.set_user_check_info(user_id, check_time_stamp, check_time, login_time, 'alive')
-    return "alive"
+    return {"status": "alive", "user_id": user_id}
 
 
 class UserCache():
@@ -68,7 +67,6 @@ class UserCache():
 user_cache = UserCache()
 
 
-
 class check_util():
     def __init__(self):
         pass
@@ -87,6 +85,7 @@ class check_util():
             else:
                 log.debug("用户" + user['user_id'] + "状态正常")
         log.debug("检查结束")
+
 
 check = check_util()
 

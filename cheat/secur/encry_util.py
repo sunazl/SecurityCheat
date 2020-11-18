@@ -20,6 +20,7 @@ class encry_util():
         log.info("加密初始化完成")
         log.info("公钥,私钥生成完毕")
         self.connection_key = {}
+        self.user_pub_key = {}
 
     def aes_encrypt(self, data):
         pad = lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16)
@@ -77,7 +78,7 @@ class encry_util():
             return self.connection_key
 
         pubkey, privkey = rsa.newkeys(1024)
-        self.connection_key = {"pubkey": pubkey, 'create_time': create_time,'privkey':privkey}
+        self.connection_key = {"pubkey": pubkey, 'create_time': create_time, 'privkey': privkey}
         return self.connection_key
 
     # 密码解密
@@ -101,6 +102,15 @@ class encry_util():
         en = k.encrypt(passwd)
         passwd = str(base64.b64encode(en), 'utf-8')  # 改成字符串
         return passwd
+
+
+    # 添加和获取用户公钥 pubkey为string注意转换格式
+    def set_user_pub_key(self, user_id, user_pub_key):
+        self.user_pub_key[user_id] = user_pub_key
+
+    def get_user_pub_key(self, user_id):
+        if self.user_pub_key.__contains__(user_id):
+            return self.user_pub_key[user_id]
 
 
 encry_util = encry_util()
