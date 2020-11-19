@@ -7,10 +7,11 @@ class exchange():
         # userid 1
         self.code = {}
         self.privkey_user = {}
+        self.pubkey_user = {}
 
     def create_code(self, user_id):
         now = time.time()
-        if self.code.__contains__(user_id) and -now - float(self.code[user_id].split(";")[1])  < 250:
+        if self.code.__contains__(user_id) and now - float(self.code[user_id].split(";")[1]) < 250:
             return self.code[user_id].split(";")[0]
         code = ""
         for i in range(0, 4):
@@ -36,7 +37,7 @@ class exchange():
 
 
         else:
-            return  '输入错误,或者别人压根就不想和你聊天'
+            return '输入错误,或者别人压根就不想和你聊天'
 
     # 该私钥是根据用户的公钥的加密后的结果
     # user_id_my 用户  user_id_other 目标端 privkey 根据 用户公钥加密的目标用户私钥
@@ -53,6 +54,9 @@ class exchange():
                 return '未发起聊天'
         else:
             return '未发起聊天'
+
+    def set_pubkey(self, user_id_my, user_id_other, pubkey):
+        self.pubkey_user[user_id_my] = {user_id_other: pubkey}
 
 
 exchange_util = exchange()
