@@ -54,7 +54,7 @@ def send_my_key(req):
     pubkey = req['pubkey_str']
 
     exchange_util.set_privkey(user_id_other, user_id_my, encrypt_privkey)
-    exchange_util.set_pubkey(user_id_other, user_id_my, pubkey)
+    exchange_util.set_pubkey(user_id_my, pubkey)
     return 'sueecss'
 
 

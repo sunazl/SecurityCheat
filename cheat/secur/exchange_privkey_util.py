@@ -55,8 +55,8 @@ class exchange():
         else:
             return '未发起聊天'
 
-    def set_pubkey(self, user_id_my, user_id_other, pubkey):
-        self.pubkey_user[user_id_my] = {user_id_other: pubkey}
+    def set_pubkey(self, user_id_my, pubkey):
+        self.pubkey_user[user_id_my] = pubkey
 
 
 exchange_util = exchange()
