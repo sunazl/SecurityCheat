@@ -86,8 +86,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'SecurityCheat',
         'USER': 'root',
-        'PASSWORD': 'Sun@via0814@',
-        'HOST': 'sunazl.cn',
+        'PASSWORD': '',
+        'HOST': '',
         'PORT': '3306',
     }
 }
