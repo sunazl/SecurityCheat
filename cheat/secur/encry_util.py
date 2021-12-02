@@ -115,10 +115,7 @@ class encry_util():
         if self.user_pub_key.__contains__(user_id):
             return self.user_pub_key[user_id]
 
-    def get_user_pub_key_str(self, user_id):
-        if self.user_pub_key.__contains__(user_id):
-            pub_key_str = str(base64.b64encode(self.user_pub_key[user_id].save_pkcs1()), 'utf-8')
-            return pub_key_str
+
 
 
 encry_util = encry_util()
